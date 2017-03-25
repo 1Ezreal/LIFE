@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.project.xiaoji.life.APIManager;
 import com.project.xiaoji.life.R;
 import com.project.xiaoji.life.bean.TittleBean;
 import com.project.xiaoji.life.inter.ITitleDataListener;
@@ -78,7 +79,7 @@ public class Main_HomeFragment extends Fragment {
 
     private void getTitleData() {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://api.mglife.me/")
+                .baseUrl(APIManager.BASEURL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         ITitleDataListener listener = retrofit.create(ITitleDataListener.class);

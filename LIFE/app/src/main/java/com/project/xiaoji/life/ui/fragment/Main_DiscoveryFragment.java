@@ -151,8 +151,8 @@ public class Main_DiscoveryFragment extends Fragment {
     }
 
     private void initData() {
-        fragments.add(new Main_PersonFragment());
-        fragments.add(new Main_PersonFragment());
+        fragments.add(new Discovery_Fragment_item_channel());
+        fragments.add(new Discovery_Fragment_item_category());
     }
 
     private void initViews(View view) {

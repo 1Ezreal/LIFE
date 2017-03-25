@@ -1,6 +1,9 @@
 package com.project.xiaoji.life.adpter;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,9 +17,9 @@ import android.widget.TextView;
 
 import com.project.xiaoji.life.R;
 import com.project.xiaoji.life.bean.HomeItemBean;
+import com.project.xiaoji.life.ui.activity.Home_Banner_Item_Activity;
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.project.xiaoji.life.R.id.sub_rv;
@@ -27,9 +30,8 @@ import static com.project.xiaoji.life.R.id.sub_rv;
 
 public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     Context context;
-    List<HomeItemBean.DataBean.HomeListBean> list = new ArrayList<>();
+    List<HomeItemBean.DataBean.HomeListBean> list;
     LayoutInflater inflater;
-
 
 
     public HomeAdapter(Context context, List<HomeItemBean.DataBean.HomeListBean> list) {
@@ -42,7 +44,7 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         switch (viewType) {
             case 0: {
-                View view=inflater.inflate(R.layout.item_banners,parent,false);
+                View view = inflater.inflate(R.layout.item_banners, parent, false);
                 return new BannersViewHolder(view);
             }
             case 1: {
@@ -51,7 +53,7 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
             case 2: {
                 View view = inflater.inflate(R.layout.item_focus_product, parent, false);
-                return  new FocusProductViewHolder(view);
+                return new FocusProductViewHolder(view);
             }
             case 3: {
                 View view = inflater.inflate(R.layout.item_post_have_item, parent, false);
@@ -66,12 +68,46 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
+        Handler handler;
         switch (list.get(position).getCell_type()) {
             case "banners": {
-                BannersViewHolder bannersViewHolder = (BannersViewHolder) holder;
+                final BannersViewHolder bannersViewHolder = (BannersViewHolder) holder;
                 final List<HomeItemBean.DataBean.HomeListBean.BannersBean> banners = list.get(position).getBanners();
+                handler = new Handler() {
+                    @Override
+                    public void handleMessage(Message msg) {
+                        if (bannersViewHolder.viewPager.getChildCount() > 0) {
+
+                            Object tag = bannersViewHolder.viewPager.getTag();
+                            if (null != tag && (int) tag == position) {
+                                int currentItem = bannersViewHolder.viewPager.getCurrentItem();
+                                bannersViewHolder.viewPager.setCurrentItem((++currentItem) % banners.size());
+                            }
+                        }
+                        sendEmptyMessageDelayed(0, 4000);
+
+                    }
+                };
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(20, 20);
+                lp.setMargins(10, 10, 10, 10);
+                Object tag = bannersViewHolder.ll.getTag();
+                if (null == tag || (int) tag != position) {
+
+                    for (int i = 0; i < banners.size(); i++) {
+                        View view = new View(context);
+                        if (i == 0) {
+                            view.setBackgroundResource(R.drawable.shape_tip_selected);
+                        }
+                        view.setBackgroundResource(R.drawable.shape_tip_normal);
+
+                        bannersViewHolder.ll.addView(view, lp);
+
+                    }
+
+                    bannersViewHolder.ll.setTag(position);
+                }
+
                 bannersViewHolder.viewPager.setAdapter(new PagerAdapter() {
                     @Override
                     public int getCount() {
@@ -80,14 +116,22 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
                     @Override
                     public boolean isViewFromObject(View view, Object object) {
-                        return view==object;
+                        return view == object;
                     }
 
                     @Override
-                    public Object instantiateItem(ViewGroup container, int position) {
-                        ImageView iv=new ImageView(context);
+                    public Object instantiateItem(ViewGroup container, final int position) {
+                        ImageView iv = new ImageView(context);
                         iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
                         Picasso.with(context).load(banners.get(position).getImage_url()).into(iv);
+                        iv.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Intent intent=new Intent(context, Home_Banner_Item_Activity.class);
+                                intent.putExtra("urlId",banners.get(position).getTarget().getId()+"");
+                                context.startActivity(intent);
+                            }
+                        });
                         container.addView(iv);
                         return iv;
                     }
@@ -98,21 +142,52 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     }
                 });
 
+                if (null == bannersViewHolder.viewPager.getTag()) {
+                    bannersViewHolder.viewPager.setTag(position);
+                    handler.sendEmptyMessage(0);
+
+                }
+
+
+                bannersViewHolder.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+                    @Override
+                    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                        for (int i = 0; i < bannersViewHolder.ll.getChildCount(); i++) {
+                            View view = bannersViewHolder.ll.getChildAt(i);
+                            if (i == position) {
+                                view.setBackgroundResource(R.drawable.shape_tip_selected);
+                            } else {
+                                view.setBackgroundResource(R.drawable.shape_tip_normal);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onPageSelected(int position) {
+
+                    }
+
+                    @Override
+                    public void onPageScrollStateChanged(int state) {
+
+                    }
+                });
+
             }
             break;
             case "fav_list": {
                 FavListViewHolder favListViewHolder = (FavListViewHolder) holder;
                 HomeItemBean.DataBean.HomeListBean.FavListBean fav_list = list.get(position).getFav_list();
                 favListViewHolder.tv_title.setText(fav_list.getName());
-                favListViewHolder.tv_count.setText(fav_list.getItems_count()+"单品");
+                favListViewHolder.tv_count.setText(fav_list.getItems_count() + "单品");
                 HomeItemBean.DataBean.HomeListBean.FavListBean.UserInfoBean user_info = fav_list.getUser_info();
                 Picasso.with(context).load(user_info.getAvatar_url()).into(favListViewHolder.iv);
 
                 favListViewHolder.tv_tip.setText(user_info.getNickname());
 
-                LinearLayoutManager layoutManager=new LinearLayoutManager(context,LinearLayoutManager.HORIZONTAL,false);
+                LinearLayoutManager layoutManager = new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false);
                 favListViewHolder.rv.setLayoutManager(layoutManager);
-                favListViewHolder.rv.setAdapter(new FavListItemAdapter(context,fav_list.getItems_info()));
+                favListViewHolder.rv.setAdapter(new FavListItemAdapter(context, fav_list.getItems_info()));
 
 
             }
@@ -133,8 +208,8 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 Picasso.with(context).load(post.getChannel_icon()).into(postHaveItemViewHolder.iv_logo);
 
                 postHaveItemViewHolder.tv_title.setText(post.getTitle());
-                postHaveItemViewHolder.tv_type.setText("[ "+post.getChannel_title()+" ]");
-                postHaveItemViewHolder.tv_count.setText(post.getLikes_count()+"");
+                postHaveItemViewHolder.tv_type.setText("[ " + post.getChannel_title() + " ]");
+                postHaveItemViewHolder.tv_count.setText(post.getLikes_count() + "");
 
                 List<HomeItemBean.DataBean.HomeListBean.PostBean.PostItemsBean> items = post.getPost_items();
                 LinearLayoutManager layoutManager = new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false);
@@ -150,9 +225,8 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 Picasso.with(context).load(post.getChannel_icon()).into(postNoItemViewHolder.iv_logo);
 
                 postNoItemViewHolder.tv_title.setText(post.getTitle());
-                postNoItemViewHolder.tv_type.setText("[ "+post.getChannel_title()+"]");
-                postNoItemViewHolder.tv_count.setText(post.getLikes_count()+"");
-
+                postNoItemViewHolder.tv_type.setText("[ " + post.getChannel_title() + " ]");
+                postNoItemViewHolder.tv_count.setText(post.getLikes_count() + "");
 
 
             }
@@ -160,44 +234,50 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
 
 
-
     }
-    class BannersViewHolder extends RecyclerView.ViewHolder{
+
+    class BannersViewHolder extends RecyclerView.ViewHolder {
         private ViewPager viewPager;
         private LinearLayout ll;
+
         public BannersViewHolder(View itemView) {
             super(itemView);
-             viewPager = (ViewPager) itemView.findViewById(R.id.viewPager);
-            ll= (LinearLayout) itemView.findViewById(R.id.ll);
+            viewPager = (ViewPager) itemView.findViewById(R.id.viewPager);
+            ll = (LinearLayout) itemView.findViewById(R.id.ll);
         }
     }
-    class FavListViewHolder extends RecyclerView.ViewHolder{
-        private TextView tv_title,tv_count,tv_tip;
+
+    class FavListViewHolder extends RecyclerView.ViewHolder {
+        private TextView tv_title, tv_count, tv_tip;
         private ImageView iv;
         private RecyclerView rv;
+
         public FavListViewHolder(View itemView) {
             super(itemView);
-            tv_title= (TextView) itemView.findViewById(R.id.tv_title);
-            tv_count= (TextView) itemView.findViewById(R.id.tv_count);
-            tv_tip= (TextView) itemView.findViewById(R.id.tv_tip);
-            iv= (ImageView) itemView.findViewById(R.id.iv);
-            rv= (RecyclerView) itemView.findViewById(sub_rv);
+            tv_title = (TextView) itemView.findViewById(R.id.tv_title);
+            tv_count = (TextView) itemView.findViewById(R.id.tv_count);
+            tv_tip = (TextView) itemView.findViewById(R.id.tv_tip);
+            iv = (ImageView) itemView.findViewById(R.id.iv);
+            rv = (RecyclerView) itemView.findViewById(sub_rv);
         }
     }
-    class FocusProductViewHolder extends RecyclerView.ViewHolder{
-        private TextView tv_title,tv_tip,tv_money;
+
+    class FocusProductViewHolder extends RecyclerView.ViewHolder {
+        private TextView tv_title, tv_tip, tv_money;
         private ImageView iv;
+
         public FocusProductViewHolder(View itemView) {
             super(itemView);
-            tv_title= (TextView) itemView.findViewById(R.id.tv_title);
-            tv_tip= (TextView) itemView.findViewById(R.id.tv_tip);
-            tv_money= (TextView) itemView.findViewById(R.id.tv_money);
-            iv= (ImageView) itemView.findViewById(R.id.iv);
+            tv_title = (TextView) itemView.findViewById(R.id.tv_title);
+            tv_tip = (TextView) itemView.findViewById(R.id.tv_tip);
+            tv_money = (TextView) itemView.findViewById(R.id.tv_money);
+            iv = (ImageView) itemView.findViewById(R.id.iv);
         }
     }
+
     class PostHaveItemViewHolder extends RecyclerView.ViewHolder {
         private ImageView iv_max, iv_logo;
-        private TextView tv_title, tv_type,tv_count;
+        private TextView tv_title, tv_type, tv_count;
         private RecyclerView sub_rv;
 
         public PostHaveItemViewHolder(View itemView) {
@@ -211,9 +291,11 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             sub_rv.setVisibility(View.VISIBLE);
         }
     }
-    class PostNoItemViewHolder extends RecyclerView.ViewHolder{
-        private ImageView iv_max, iv_logo,iv_bg;
-        private TextView tv_title, tv_type,tv_count;
+
+    class PostNoItemViewHolder extends RecyclerView.ViewHolder {
+        private ImageView iv_max, iv_logo, iv_bg;
+        private TextView tv_title, tv_type, tv_count;
+
         public PostNoItemViewHolder(View itemView) {
             super(itemView);
             iv_max = (ImageView) itemView.findViewById(R.id.iv_max);

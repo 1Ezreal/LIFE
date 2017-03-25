@@ -1,6 +1,5 @@
 package com.project.xiaoji.life.ui.fragment;
 
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -39,7 +38,10 @@ public class MyBaseFragment extends Fragment {
         rv = ((RecyclerView) view.findViewById(R.id.rv));
         swipeRefresh = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefresh);
         swipeRefresh.setColorSchemeColors(getResources().getColor(R.color.myYellow));
-        rv.addItemDecoration(new SpacesItemDecoration(40));
+        swipeRefresh.setRefreshing(true);
+        LinearLayoutManager layoutManager=new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false);
+        rv.setLayoutManager(layoutManager);
+
         rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
@@ -71,23 +73,5 @@ public class MyBaseFragment extends Fragment {
         });
     }
 
-    public class SpacesItemDecoration extends RecyclerView.ItemDecoration {
-        private int space;
 
-        public SpacesItemDecoration(int space) {
-            this.space = space;
-        }
-
-        @Override
-        public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
-            outRect.left = 0;
-            outRect.right = 0;
-            outRect.bottom = space;
-
-            // Add top margin only for the first item to avoid double space between items
-            //设置第一个Item的MarginTop 属性
-            if (parent.getChildPosition(view) == 0)
-                outRect.top = 0;
-        }
-    }
 }
