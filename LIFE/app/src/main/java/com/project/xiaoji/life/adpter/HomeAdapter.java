@@ -2,6 +2,7 @@ package com.project.xiaoji.life.adpter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.view.PagerAdapter;
@@ -18,6 +19,8 @@ import android.widget.TextView;
 import com.project.xiaoji.life.R;
 import com.project.xiaoji.life.bean.HomeItemBean;
 import com.project.xiaoji.life.ui.activity.Home_Banner_Item_Activity;
+import com.project.xiaoji.life.ui.activity.Home_FocusProduct_Activity;
+import com.project.xiaoji.life.ui.activity.WebView_Activity;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -194,11 +197,40 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             break;
             case "focus_product": {
                 FocusProductViewHolder focusProductViewHolder = (FocusProductViewHolder) holder;
-                HomeItemBean.DataBean.HomeListBean.FocusProductBean focus_product = list.get(position).getFocus_product();
+                final HomeItemBean.DataBean.HomeListBean.FocusProductBean focus_product = list.get(position).getFocus_product();
                 Picasso.with(context).load(focus_product.getImage_url()).into(focusProductViewHolder.iv);
                 focusProductViewHolder.tv_title.setText(focus_product.getTitle());
                 focusProductViewHolder.tv_tip.setText(focus_product.getIntroduction());
                 focusProductViewHolder.tv_money.setText(focus_product.getSub_title());
+                focusProductViewHolder.iv.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (""!=focus_product.getRaw_url()){
+                            try {
+                                Intent intent = new Intent();
+                                intent.setAction("Android.intent.action.VIEW");
+                                Uri content_url = Uri.parse(focus_product.getRaw_url()); // 淘宝商品的地址
+                                intent.setData(content_url);
+                                //返回JSONDATA为空
+                                intent.setClassName("com.taobao.taoba", "com.taobao.tao.detail.activity.DetailActivity");
+                                context.startActivity(intent);
+                            } catch (Exception e) {
+
+                                Intent intent=new Intent(context, WebView_Activity.class);
+                                intent.putExtra("url",focus_product.getRaw_url());
+                                intent.putExtra("title","商品详情");
+                                context.startActivity(intent);
+                            }
+                        }else {
+
+                            Intent intent=new Intent(context,Home_FocusProduct_Activity.class);
+                            intent.putExtra("itemId",focus_product.getTarget_url());
+                            intent.putExtra("title","商品详情");
+                            context.startActivity(intent);
+                        }
+
+                    }
+                });
             }
             break;
             case "post_have_item": {

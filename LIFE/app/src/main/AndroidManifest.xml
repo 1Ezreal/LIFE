@@ -17,6 +17,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.activity.Home_Banner_Item_Activity"/>
+        <activity android:name=".ui.activity.WebView_Activity"/>
+        <activity android:name=".ui.activity.Home_FocusProduct_Activity"/>
     </application>
 
 </manifest>

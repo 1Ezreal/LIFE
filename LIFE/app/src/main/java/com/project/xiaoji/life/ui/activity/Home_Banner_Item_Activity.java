@@ -58,7 +58,7 @@ public class Home_Banner_Item_Activity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_banner_item);
         initViews();
-
+        swipeRefresh.setColorSchemeColors(getResources().getColor(R.color.myYellow));
         getData();
         swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
